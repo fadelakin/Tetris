@@ -82,8 +82,7 @@ public class Board extends JPanel implements ActionListener {
 		repaint();
 	}
 	
-	public void pain(Graphics g)
-	{
+	public void paint(Graphics g) {
 		super.paint(g);
 		
 		Dimension size = getSize();
@@ -105,6 +104,93 @@ public class Board extends JPanel implements ActionListener {
 				drawSquare(g, 0 + x * squareWidth(),
 						boardTop + (BoardHeight - y - 1) * squareHeight(),
 						curPiece.getShape());
+			}
+		}
+	}
+	
+	private void dropDown() {
+		int newY = curY;
+		while (newY > 0) {
+			if(!tryMove(curPiece, curX, newY - 1))
+				break;
+			--newY;
+		}
+		pieceDropped();
+	}
+	
+	private void oneLineDown() {
+		if(!tryMove(curPiece, curX, curY - 1))
+			pieceDropped();
+	}
+	
+	private void clearBoard() {
+		for(int i = 0; i < BoardHeight * BoardWidth; i++)
+			board[i] = Tetrominoes.NoShape;
+	}
+	
+	private void pieceDropped() {
+		for(int i = 0; i < 4; i++) {
+			int x = curX + curPiece.x(i);
+			int y = curY - curPiece.y(i);
+			board[(y * BoardWidth) + x] = curPiece.getShape();
+		}
+		
+		removeFullLines();
+		
+		if (!isFallingFinished)
+			newPiece();
+	}
+	
+	private void newPiece() {
+		curPiece.setRandomShape();
+		curX = BoardWidth / 2 + 1;
+		curY = BoardHeight - 1 + curPiece.minY();
+		
+		if (!tryMove(curPiece, curX, curY)) {
+			curPiece.setShape(Tetrominoes.NoShape);
+			timer.stop();
+			isStarted = false;
+			statusbar.setText("Game Over");
+		}
+	}
+	
+	private boolean tryMove(Shape newPiece, int newX, int newY) {
+		for(int i = 0; i < 4; ++i) {
+			int x = newX + newPiece.x(i);
+			int y = newY - newPiece.y(i);
+			if (x < 0 || x >= BoardWidth || y < 0 || y >= BoardHeight)
+				return false;
+			if (shapeAt(x, y) != Tetrominoes.NoShape)
+				return false;
+		}
+		
+		curPiece = newPiece;
+		curX = newX;
+		curY = newY;
+		repaint();
+		return true;
+	}
+	
+	private void removeFullLines() {
+		int numFullLines = 0;
+		
+		for (int i = BoardHeight - 1; i >= 0; --i) {
+			boolean lineIsFull = true;
+			
+			for (int j = 0; j < BoardWidth; ++j) {
+				if(shapeAt(j, i) == Tetrominoes.NoShape){
+					lineIsFull = false;
+					break;
+				}
+			}
+			
+			if (lineIsFull) {
+				++numFullLines;
+				for(int k = i; k < BoardHeight - 1; ++k) {
+					for (int j = 0; j < BoardWidth; ++j) {
+						board[(k * BoardWidth) + j] = shapeAt(j, k + 1);
+					}
+				}
 			}
 		}
 	}

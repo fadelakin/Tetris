@@ -1,4 +1,4 @@
-//package tetris;
+package tetris;
 
 import java.awt.BorderLayout;
 

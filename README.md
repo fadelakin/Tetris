@@ -1,3 +1,3 @@
 # Tetris
 
-That is all.
+A basic tetris clone written in Java. That is all.
